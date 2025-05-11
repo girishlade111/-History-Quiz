@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>American History Quiz</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron :wght@500&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #00f5ff;
+      --secondary: #ff007a;
+      --bg: #0e0e10;
+      --text: #fff;
+      --card: rgba(255, 255, 255, 0.05);
+      --accent: #ffcc00;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      background-image: linear-gradient(to bottom right, var(--primary), var(--secondary));
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+    }
+
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    h1 {
+      font-family: 'Orbitron', sans-serif;
+      text-align: center;
+      margin-top: 20px;
+      color: var(--accent);
+      text-shadow: 0 0 10px var(--accent);
+    }
+
+    .container {
+      background: var(--card);
+      border-radius: 20px;
+      padding: 30px;
+      width: 90%;
+      max-width: 600px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      margin: 20px auto;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .question {
+      margin-bottom: 20px;
+    }
+
+    .option {
+      background: var(--primary);
+      border: none;
+      color: var(--bg);
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .option:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 15px var(--primary);
+    }
+
+    .option::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(120deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: all 0.5s ease;
+    }
+
+    .option:hover::after {
+      left: 100%;
+    }
+
+    .explanation {
+      background: var(--card);
+      padding: 15px;
+      border-radius: 12px;
+      margin-top: 15px;
+      border: 1px solid rgba(255,255,255,0.1);
+      font-size: 0.95em;
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .correct {
+      background: #00ff88 !important;
+      color: #000;
+    }
+
+    .incorrect {
+      background: #ff3b3b !important;
+      color: #000;
+    }
+
+    .score {
+      font-size: 1.2em;
+      font-weight: 600;
+      margin-top: 10px;
+      color: var(--accent);
+    }
+
+    button {
+      font-family: inherit;
+    }
+
+    .progress-bar {
+      height: 10px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+
+    .progress {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width 0.5s ease;
+    }
+
+    .final-result {
+      text-align: center;
+      animation: popIn 0.6s ease;
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.9); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .restart-btn {
+      background: var(--secondary);
+      color: #fff;
+      padding: 12px 25px;
+      border-radius: 15px;
+      font-weight: bold;
+      font-size: 1em;
+      border: none;
+      margin-top: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .restart-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 20px var(--secondary);
+    }
+  </style>
+</head>
+<body>
+  <h1>🇺🇸 American History Quiz</h1>
+
+  <div class="container" id="start-screen">
+    <p>Test your knowledge of American history with 10 mind-bending questions!</p>
+    <button class="option" onclick="startQuiz()">Start Quiz</button>
+  </div>
+
+  <div class="container hidden" id="quiz">
+    <div class="progress-bar">
+      <div class="progress" id="progress"></div>
+    </div>
+    <div id="question-container"></div>
+    <div class="score">Score: <span id="score-value">0</span>/10</div>
+  </div>
+
+  <script>
+    let currentQuestion = 0;
+    let score = 0;
+
+    const questions = [
+      {
+        question: "When was the Declaration of Independence adopted?",
+        options: ["July 4, 1776", "July 4, 1789", "April 19, 1775", "October 19, 1781"],
+        answer: "July 4, 1776",
+        explanation: "The Declaration of Independence was adopted by the Continental Congress on July 4, 1776, announcing the colonies' independence from Britain."
+      },
+      {
+        question: "Which event marked the start of the American Civil War?",
+        options: ["Battle of Gettysburg", "Fort Sumter", "Shiloh", "Antietam"],
+        answer: "Fort Sumter",
+        explanation: "The Civil War began when Confederate forces attacked Fort Sumter, South Carolina on April 12, 1861, following South Carolina's secession from the Union."
+      },
+      {
+        question: "Who was the first female Supreme Court Justice?",
+        options: ["Ruth Bader Ginsburg", "Sandra Day O'Connor", "Elena Kagan", "Amy Coney Barrett"],
+        answer: "Sandra Day O'Connor",
+        explanation: "Sandra Day O'Connor became the first female Supreme Court Justice in 1981 after being appointed by President Ronald Reagan."
+      },
+      {
+        question: "What was the significance of the Louisiana Purchase?",
+        options: ["Doubled US size", "Ended the Civil War", "Gave women voting rights", "Established the Bill of Rights"],
+        answer: "Doubled US size",
+        explanation: "The Louisiana Purchase from France in 1803 doubled the size of the United States and was one of the most significant land deals in history."
+      },
+      {
+        question: "What year did women gain the right to vote nationwide?",
+        options: ["1865", "1870", "1920", "1965"],
+        answer: "1920",
+        explanation: "The 19th Amendment, ratified in 1920, granted women the right to vote after decades of suffrage activism."
+      },
+      {
+        question: "Which president ended slavery with the Emancipation Proclamation?",
+        options: ["Thomas Jefferson", "Abraham Lincoln", "Andrew Johnson", "Ulysses S. Grant"],
+        answer: "Abraham Lincoln",
+        explanation: "President Abraham Lincoln issued the Emancipation Proclamation on January 1, 1863, declaring slaves in Confederate states to be free."
+      },
+      {
+        question: "What was the first major battle of the American Revolution?",
+        options: ["Bunker Hill", "Trenton", "Saratoga", "Yorktown"],
+        answer: "Bunker Hill",
+        explanation: "The Battle of Bunker Hill (June 17, 1775) was the first major battle of the Revolutionary War, though the British technically won."
+      },
+      {
+        question: "What document established the first government of the United States?",
+        options: ["Constitution", "Articles of Confederation", "Bill of Rights", "Declaration of Independence"],
+        answer: "Articles of Confederation",
+        explanation: "The Articles of Confederation, ratified in 1781, created the first national government, which was later replaced by the Constitution in 1789."
+      },
+      {
+        question: "Who delivered the 'I Have a Dream' speech?",
+        options: ["Malcolm X", "Martin Luther King Jr.", "Rosa Parks", "Frederick Douglass"],
+        answer: "Martin Luther King Jr.",
+        explanation: "Dr. Martin Luther King Jr. delivered his famous 'I Have a Dream' speech during the 1963 March on Washington for Jobs and Freedom."
+      },
+      {
+        question: "Which war was the deadliest in American history?",
+        options: ["WWII", "WWI", "Civil War", "Vietnam War"],
+        answer: "Civil War",
+        explanation: "The American Civil War (1861–1865) resulted in over 600,000 deaths, making it the deadliest conflict in US history."
+      }
+    ];
+
+    function startQuiz() {
+      document.getElementById('start-screen').classList.add('hidden');
+      document.getElementById('quiz').classList.remove('hidden');
+      updateProgress();
+      showQuestion();
+    }
+
+    function showQuestion() {
+      const container = document.getElementById('question-container');
+      const q = questions[currentQuestion];
+
+      container.innerHTML = `
+        <div class="question">
+          <h3>Question ${currentQuestion + 1}/10</h3>
+          <p>${q.question}</p>
+          ${q.options.map(option => 
+            `<button class="option" onclick="checkAnswer('${option}')">${option}</button>`
+          ).join('')}
+        </div>
+      `;
+    }
+
+    function checkAnswer(selected) {
+      const q = questions[currentQuestion];
+      const buttons = document.querySelectorAll('.option');
+      const correct = selected === q.answer;
+
+      buttons.forEach(btn => {
+        btn.disabled = true;
+        if (btn.textContent === q.answer) {
+          btn.classList.add('correct');
+        } else if (btn.textContent === selected && !correct) {
+          btn.classList.add('incorrect');
+        }
+      });
+
+      const explanationDiv = document.createElement('div');
+      explanationDiv.className = 'explanation';
+      explanationDiv.innerHTML = `<strong>🧠 Explanation:</strong> ${q.explanation}`;
+      document.querySelector('.question').appendChild(explanationDiv);
+
+      if (correct) score++;
+      document.getElementById('score-value').textContent = score;
+
+      updateProgress();
+
+      if (currentQuestion < questions.length - 1) {
+        const nextBtn = document.createElement('button');
+        nextBtn.textContent = 'Next Question ➡️';
+        nextBtn.className = 'option';
+        nextBtn.onclick = () => {
+          currentQuestion++;
+          showQuestion();
+        };
+        document.querySelector('.question').appendChild(nextBtn);
+      } else {
+        const finishBtn = document.createElement('button');
+        finishBtn.textContent = 'Finish Quiz 🎉';
+        finishBtn.className = 'option';
+        finishBtn.onclick = showResults;
+        document.querySelector('.question').appendChild(finishBtn);
+      }
+    }
+
+    function updateProgress() {
+      const percent = ((currentQuestion + 1) / questions.length) * 100;
+      document.getElementById('progress').style.width = `${percent}%`;
+    }
+
+    function showResults() {
+      document.getElementById('quiz').innerHTML = `
+        <div class="final-result">
+          <h2>🎉 Quiz Complete!</h2>
+          <p style="font-size:1.2em;">You scored <strong>${score}/10</strong></p>
+          <button class="restart-btn" onclick="location.reload()">🔄 Restart Quiz</button>
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>
