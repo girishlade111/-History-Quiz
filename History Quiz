@@ -1,0 +1,397 @@
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Button } from "/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "/components/ui/card";
+import { Label } from "/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "/components/ui/radio-group";
+
+type Difficulty = 'easy' | 'medium' | 'hard';
+
+type Question = {
+  id: number;
+  text: string;
+  options: string[];
+  correctAnswer: string;
+  explanation: string;
+  difficulty: Difficulty;
+};
+
+export default function MaterialHistoryQuiz() {
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [score, setScore] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [quizCompleted, setQuizCompleted] = useState(false);
+  const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty | null>(null);
+  const [quizStarted, setQuizStarted] = useState(false);
+
+  const questions: Question[] = [
+    // Easy questions
+    {
+      id: 1,
+      text: "In which year was the Declaration of Independence signed?",
+      options: ["1774", "1775", "1776", "1777"],
+      correctAnswer: "1776",
+      explanation: "The Declaration of Independence was signed on July 4, 1776, marking the formal separation of the 13 American colonies from Great Britain.",
+      difficulty: 'easy'
+    },
+    {
+      id: 2,
+      text: "Who was the first President of the United States?",
+      options: ["John Adams", "Thomas Jefferson", "Benjamin Franklin", "George Washington"],
+      correctAnswer: "George Washington",
+      explanation: "George Washington served as the first President from 1789 to 1797 and is often called the 'Father of His Country'.",
+      difficulty: 'easy'
+    },
+    // Medium questions
+    {
+      id: 3,
+      text: "Which amendment to the Constitution abolished slavery?",
+      options: ["13th", "14th", "15th", "16th"],
+      correctAnswer: "13th",
+      explanation: "The 13th Amendment, ratified in 1865, abolished slavery and involuntary servitude throughout the United States.",
+      difficulty: 'medium'
+    },
+    {
+      id: 4,
+      text: "What was the main purpose of the Lewis and Clark expedition?",
+      options: [
+        "To find gold in California",
+        "To explore the newly acquired Louisiana Territory",
+        "To establish trade with Native Americans",
+        "To map the route to Canada"
+      ],
+      correctAnswer: "To explore the newly acquired Louisiana Territory",
+      explanation: "The Lewis and Clark Expedition (1804-1806) was commissioned by President Jefferson to explore and map the newly acquired Louisiana Purchase.",
+      difficulty: 'medium'
+    },
+    // Hard questions
+    {
+      id: 5,
+      text: "Which Supreme Court case established the principle of judicial review?",
+      options: [
+        "Marbury v. Madison",
+        "McCulloch v. Maryland",
+        "Dred Scott v. Sandford",
+        "Plessy v. Ferguson"
+      ],
+      correctAnswer: "Marbury v. Madison",
+      explanation: "Marbury v. Madison (1803) established the principle of judicial review, giving courts the power to declare laws unconstitutional.",
+      difficulty: 'hard'
+    },
+    {
+      id: 6,
+      text: "What was the main purpose of the Federalist Papers?",
+      options: [
+        "To argue against the Constitution",
+        "To promote ratification of the Constitution",
+        "To outline state's rights",
+        "To criticize British rule"
+      ],
+      correctAnswer: "To promote ratification of the Constitution",
+      explanation: "The Federalist Papers were a series of 85 essays written by Hamilton, Madison, and Jay to promote ratification of the U.S. Constitution.",
+      difficulty: 'hard'
+    }
+  ];
+
+  const filteredQuestions = selectedDifficulty 
+    ? questions.filter(q => q.difficulty === selectedDifficulty)
+    : questions;
+
+  const handleAnswerSelect = (answer: string) => {
+    setSelectedAnswer(answer);
+    setShowFeedback(true);
+    
+    if (answer === filteredQuestions[currentQuestionIndex].correctAnswer) {
+      setScore(score + 1);
+    }
+  };
+
+  const handleNextQuestion = () => {
+    if (currentQuestionIndex < filteredQuestions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setSelectedAnswer(null);
+      setShowFeedback(false);
+    } else {
+      setQuizCompleted(true);
+    }
+  };
+
+  const resetQuiz = () => {
+    setCurrentQuestionIndex(0);
+    setScore(0);
+    setSelectedAnswer(null);
+    setShowFeedback(false);
+    setQuizCompleted(false);
+    setQuizStarted(false);
+    setSelectedDifficulty(null);
+  };
+
+  const startQuiz = () => {
+    if (selectedDifficulty) {
+      setQuizStarted(true);
+    }
+  };
+
+  if (!quizStarted) {
+    return (
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="flex items-center justify-center min-h-screen p-4"
+      >
+        <Card className="w-full max-w-md shadow-lg rounded-xl overflow-hidden">
+          <CardHeader className="bg-primary text-primary-foreground p-6">
+            <CardTitle className="text-2xl font-bold">American History Quiz</CardTitle>
+            <p className="text-primary-foreground/90">Test your knowledge of U.S. history</p>
+          </CardHeader>
+          <CardContent className="p-6 space-y-6">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700">Select difficulty:</Label>
+              <RadioGroup 
+                value={selectedDifficulty || ''}
+                onValueChange={(value) => setSelectedDifficulty(value as Difficulty)}
+                className="space-y-3"
+              >
+                <motion.div 
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50"
+                >
+                  <RadioGroupItem value="easy" id="easy" className="h-5 w-5" />
+                  <Label htmlFor="easy" className="text-base font-medium">
+                    <div>Easy</div>
+                    <div className="text-sm text-gray-500">Basic historical facts</div>
+                  </Label>
+                </motion.div>
+                
+                <motion.div 
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50"
+                >
+                  <RadioGroupItem value="medium" id="medium" className="h-5 w-5" />
+                  <Label htmlFor="medium" className="text-base font-medium">
+                    <div>Medium</div>
+                    <div className="text-sm text-gray-500">Important events</div>
+                  </Label>
+                </motion.div>
+                
+                <motion.div 
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50"
+                >
+                  <RadioGroupItem value="hard" id="hard" className="h-5 w-5" />
+                  <Label htmlFor="hard" className="text-base font-medium">
+                    <div>Hard</div>
+                    <div className="text-sm text-gray-500">Detailed knowledge</div>
+                  </Label>
+                </motion.div>
+              </RadioGroup>
+            </div>
+            
+            <motion.div
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
+            >
+              <Button 
+                onClick={startQuiz} 
+                disabled={!selectedDifficulty}
+                className="w-full h-12 rounded-lg text-lg font-medium shadow-md"
+              >
+                Start Quiz
+              </Button>
+            </motion.div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  }
+
+  if (quizCompleted) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className="flex items-center justify-center min-h-screen p-4"
+      >
+        <Card className="w-full max-w-md shadow-lg rounded-xl overflow-hidden">
+          <CardHeader className="bg-primary text-primary-foreground p-6">
+            <CardTitle className="text-2xl font-bold">Quiz Complete!</CardTitle>
+          </CardHeader>
+          <CardContent className="p-6 space-y-6">
+            <div className="text-center space-y-4">
+              <motion.div
+                initial={{ scale: 0.8 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', stiffness: 300 }}
+                className="inline-block"
+              >
+                <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+                  <span className="text-3xl font-bold text-primary">
+                    {Math.round((score / filteredQuestions.length) * 100)}%
+                  </span>
+                </div>
+              </motion.div>
+              
+              <div>
+                <p className="text-xl font-semibold">
+                  You scored {score} out of {filteredQuestions.length}
+                </p>
+                <p className="text-lg mt-2 text-gray-600">
+                  {score === filteredQuestions.length ? "Perfect! 🎉" : 
+                   score >= filteredQuestions.length * 0.7 ? "Great job! 👍" : 
+                   "Keep learning! 📚"}
+                </p>
+              </div>
+            </div>
+            
+            <div className="space-y-3">
+              <motion.div
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+              >
+                <Button 
+                  onClick={resetQuiz} 
+                  className="w-full h-12 rounded-lg text-lg font-medium shadow-md"
+                >
+                  Try Different Level
+                </Button>
+              </motion.div>
+              
+              <motion.div
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+              >
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setCurrentQuestionIndex(0);
+                    setScore(0);
+                    setSelectedAnswer(null);
+                    setShowFeedback(false);
+                    setQuizCompleted(false);
+                  }}
+                  className="w-full h-12 rounded-lg text-lg font-medium"
+                >
+                  Retry This Level
+                </Button>
+              </motion.div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  }
+
+  const currentQuestion = filteredQuestions[currentQuestionIndex];
+  const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
+
+  return (
+    <motion.div
+      key={`question-${currentQuestionIndex}`}
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -20 }}
+      className="flex items-center justify-center min-h-screen p-4"
+    >
+      <Card className="w-full max-w-md shadow-lg rounded-xl overflow-hidden">
+        <CardHeader className="bg-primary text-primary-foreground p-6">
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-xl font-bold">Question {currentQuestionIndex + 1}/{filteredQuestions.length}</CardTitle>
+            <div className="px-3 py-1 rounded-full bg-primary-foreground/10 text-sm font-medium">
+              {currentQuestion.difficulty}
+            </div>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2 mt-3">
+            <motion.div 
+              className="bg-primary-foreground h-2 rounded-full" 
+              initial={{ width: 0 }}
+              animate={{ width: `${((currentQuestionIndex + 1) / filteredQuestions.length) * 100}%` }}
+              transition={{ duration: 0.5 }}
+            />
+          </div>
+        </CardHeader>
+        
+        <CardContent className="p-6 space-y-6">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+          >
+            <h2 className="text-xl font-semibold text-gray-800">{currentQuestion.text}</h2>
+          </motion.div>
+          
+          <div className="space-y-3">
+            {currentQuestion.options.map((option, index) => (
+              <motion.div
+                key={option}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 * index }}
+              >
+                <Button
+                  variant={
+                    showFeedback
+                      ? option === currentQuestion.correctAnswer
+                        ? 'default'
+                        : option === selectedAnswer
+                        ? 'destructive'
+                        : 'outline'
+                      : 'outline'
+                  }
+                  onClick={() => !showFeedback && handleAnswerSelect(option)}
+                  disabled={showFeedback}
+                  className={`w-full justify-start h-14 text-left px-4 rounded-lg transition-all ${
+                    !showFeedback ? 'hover:bg-gray-50 hover:shadow-sm active:bg-gray-100' : ''
+                  }`}
+                >
+                  <span className="flex-1">{option}</span>
+                </Button>
+              </motion.div>
+            ))}
+          </div>
+
+          <AnimatePresence>
+            {showFeedback && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="p-4 bg-gray-50 rounded-lg space-y-4">
+                  <div className={`flex items-center space-x-2 ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
+                    <div className={`w-8 h-8 rounded-full ${isCorrect ? 'bg-green-100' : 'bg-red-100'} flex items-center justify-center`}>
+                      {isCorrect ? '✓' : '✗'}
+                    </div>
+                    <p className="font-semibold">
+                      {isCorrect ? 'Correct Answer!' : 'Incorrect Answer'}
+                    </p>
+                  </div>
+                  
+                  <p className="text-gray-700">{currentQuestion.explanation}</p>
+                  
+                  <motion.div
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                  >
+                    <Button 
+                      onClick={handleNextQuestion} 
+                      className="w-full h-12 rounded-lg text-lg font-medium shadow-md"
+                    >
+                      {currentQuestionIndex < filteredQuestions.length - 1 ? 'Next Question' : 'See Results'}
+                    </Button>
+                  </motion.div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}
